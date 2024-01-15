@@ -1,0 +1,6 @@
+boto3==1.29.7
+fastapi==0.109.0
+FastAPI_SQLAlchemy==0.2.1
+python-dotenv==1.0.0
+SQLAlchemy==2.0.23
+uvicorn==0.25.0
