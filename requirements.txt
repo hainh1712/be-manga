@@ -4,3 +4,4 @@ FastAPI_SQLAlchemy==0.2.1
 python-dotenv==1.0.0
 SQLAlchemy==2.0.23
 uvicorn==0.25.0
+python-multipart==0.0.6
