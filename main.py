@@ -38,6 +38,22 @@ def get_folder_length(bucket_name, folder_prefix):
     
     return object_count
 
+@app.post("/upload")
+async def upload_files(files: List[UploadFile], prefix: str):
+    try:
+        uploaded_urls = []
+
+        for file in files:
+            object_key = prefix + file.filename
+            s3.upload_fileobj(file.file, os.environ['AWS_BUCKET_NAME'], object_key, ExtraArgs={
+                'ContentType': file.content_type,
+            })
+            uploaded_url = f"https://{os.environ['AWS_BUCKET_NAME']}.s3.{os.environ['AWS_REGION']}.amazonaws.com/{object_key}"
+            uploaded_urls.append(uploaded_url)
+
+        return {"message": "Upload successful", "urls": uploaded_urls}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 # if __name__ == "__main__":
 #     port = int(os.environ.get('PORT', 8000))
 #     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
