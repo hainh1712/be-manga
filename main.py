@@ -76,6 +76,23 @@ async def get_images_from_folder(folder_name: str):
         return images
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/length_manga/{manga_name}")
+def get_subfolder_count(manga_name: str):
+    try:
+        bucket_name = os.environ['AWS_BUCKET_NAME']
+        folder_prefix = f"{manga_name}/"
+
+        s3 = boto3.client("s3", aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_REGION'])
+
+        response = s3.list_objects(Bucket=bucket_name, Prefix=folder_prefix, Delimiter='/')
+        
+        subfolder_count = len(response.get("CommonPrefixes", []))
+
+        return {"manga_name": manga_name, "subfolder_count": subfolder_count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 # if __name__ == "__main__":
 #     port = int(os.environ.get('PORT', 8000))
 #     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
