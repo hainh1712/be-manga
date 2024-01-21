@@ -70,7 +70,8 @@ async def get_images_from_folder(folder_name: str):
         images = []
         for key in object_keys:
             image_url = f"https://{bucket_name}.s3.{os.environ['AWS_REGION']}.amazonaws.com/{key}"
-            images.append({'url': image_url, 'alt': key})
+            alt = os.path.splitext(key.split("/")[-1])[0]
+            images.append({'url': image_url, 'alt': key, 'name': alt})
 
         return images
     except Exception as e:
