@@ -17,14 +17,17 @@ app = FastAPI()
 origins = [
     "http://localhost:5173",
     "localhost:5173",
-    "https://hai-doctruyen.vercel.app/"
+    "https://hai-doctruyen.vercel.app/",
+    "http://localhost:3000",
+    "https://onepage-next14.vercel.app/",
+    "https://onepage-next13.vercel.app/"
 ]
 s3 = boto3.client("s3", aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_REGION'])
 
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=origins,
-    allow_origins=["*"],
+    allow_origins=origins,
+    # allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
