@@ -8,7 +8,8 @@ import os
 from dotenv import load_dotenv
 import boto3
 from typing import List
-
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 load_dotenv('.env')
 
 app = FastAPI()
@@ -17,6 +18,7 @@ app = FastAPI()
 origins = [
     "http://localhost:5173",
     "localhost:5173",
+    "localhost:8000",
     "https://hai-doctruyen.vercel.app/",
     "http://localhost:3000",
     "https://onepage-next14.vercel.app/",
@@ -97,6 +99,79 @@ def get_subfolder_count(manga_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-# if __name__ == "__main__":
-#     port = int(os.environ.get('PORT', 8000))
-#     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+@app.post("/send-email")
+def send_email_with_custom_template(customer_name: str, customer_phone: str, customer_address: str, order_details: str):
+    try:
+        order_details_str = "\n".join([f"<li>{item}</li>" for item in order_details])
+        content = f"""
+        <html>
+        <head>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    background-color: #f9f9f9;
+                    padding: 20px;
+                }}
+                .email-content {{
+                    background-color: #ffffff;
+                    border: 1px solid #ddd;
+                    padding: 20px;
+                    border-radius: 8px;
+                }}
+                h2 {{
+                    color: #333;
+                }}
+                .order-details {{
+                    background-color: #f3f3f3;
+                    padding: 10px;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                }}
+                ul {{
+                    padding-left: 20px;
+                }}
+                li {{
+                    color: #555;
+                    margin-bottom: 5px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="email-content">
+                <h2>Hello Tachay Food Team,</h2>
+                <p>You got a new order from <strong>{customer_name}</strong>:</p>
+                <ul>
+                    <li><strong>Name:</strong> {customer_name}</li>
+                    <li><strong>Phone:</strong> {customer_phone}</li>
+                    <li><strong>Address:</strong> {customer_address}</li>
+                </ul>
+
+                <div class="order-details">
+                    <p><strong>Order Details:</strong></p>
+                    <ul>
+                        {order_details_str}
+                    </ul>
+                </div>
+
+                <p>Thank you for using our service!</p>
+                <p>Best regards,<br>Tachay Food Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        message = Mail(
+            from_email='sendgrid@gmail.com',
+            to_emails=os.environ.get('TO_EMAILS'),
+            subject="New Order Notification",
+            html_content=content
+        )
+        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        response = sg.send(message)
+        return {"status_code": response.status_code, "message": "Email sent successfully"}
+    except Exception as e:
+        return {"error": str(e)}
+    
+if __name__ == "__main__":
+    port = int(os.environ.get('PORT', 8000))
+    # uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("main:app", host="localhost", port=port, reload=True)
