@@ -101,7 +101,7 @@ def get_subfolder_count(manga_name: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 @app.post("/send-email")
-def send_email_with_custom_template(customer_name: str, customer_phone: str, customer_address: str, order_details: str):
+def send_email_with_custom_template(customer_name: str, customer_phone: str, customer_address: str, order_details: list[str]):
     try:
         order_details_str = "\n".join([f"<li>{item}</li>" for item in order_details])
         content = f"""
@@ -161,7 +161,7 @@ def send_email_with_custom_template(customer_name: str, customer_phone: str, cus
         </html>
         """
         message = Mail(
-            from_email='sendgrid@gmail.com',
+            from_email=os.environ.get('FROM_EMAIL'),
             to_emails=os.environ.get('TO_EMAILS'),
             subject="New Order Notification",
             html_content=content
