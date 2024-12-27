@@ -30,7 +30,7 @@ origins = [
     "https://onepage-next14.vercel.app/",
     "https://onepage-next13.vercel.app/",
     "http://tachayfood.vn/",
-    "https://tachay-food.vercel.app/"
+    "https://tachay-food.vercel.app"
 ]
 s3 = boto3.client("s3", aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_REGION'])
 
@@ -179,7 +179,7 @@ def send_email_with_custom_template(order: OrderDetails):
     except Exception as e:
         return {"status_code": response.status_code, "message": "Email send failed"}
     
-if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 8000))
-    # uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
-    uvicorn.run("main:app", host="localhost", port=port, reload=True)
+# if __name__ == "__main__":
+#     port = int(os.environ.get('PORT', 8000))
+#     # uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+#     uvicorn.run("main:app", host="localhost", port=port, reload=True)
