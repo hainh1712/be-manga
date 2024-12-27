@@ -10,9 +10,15 @@ import boto3
 from typing import List
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from pydantic import BaseModel
 load_dotenv('.env')
 
 app = FastAPI()
+class OrderDetails(BaseModel):
+    customer_name: str 
+    customer_phone: str
+    customer_address: str
+    order_details: List[str]
 
 # app.add_middleware(DBSessionMiddleware, db_url=os.environ['DATABASE_URL'])
 origins = [
@@ -23,7 +29,8 @@ origins = [
     "http://localhost:3000",
     "https://onepage-next14.vercel.app/",
     "https://onepage-next13.vercel.app/",
-    "http://tachayfood.vn/"
+    "http://tachayfood.vn/",
+    "https://tachay-food.vercel.app/"
 ]
 s3 = boto3.client("s3", aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_REGION'])
 
@@ -101,9 +108,9 @@ def get_subfolder_count(manga_name: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 @app.post("/send-email")
-def send_email_with_custom_template(customer_name: str, customer_phone: str, customer_address: str, order_details: list[str]):
+def send_email_with_custom_template(order: OrderDetails):
     try:
-        order_details_str = "\n".join([f"<li>{item}</li>" for item in order_details])
+        order_details_str = "\n".join([f"<li>{item}</li>" for item in order.order_details])
         content = f"""
         <html>
         <head>
@@ -140,17 +147,17 @@ def send_email_with_custom_template(customer_name: str, customer_phone: str, cus
         <body>
             <div class="email-content">
                 <h2>Hello Tachay Food Team,</h2>
-                <p>You got a new order from <strong>{customer_name}</strong>:</p>
+                <p>You got a new order from <strong>{order.customer_name}</strong>:</p>
                 <ul>
-                    <li><strong>Name:</strong> {customer_name}</li>
-                    <li><strong>Phone:</strong> {customer_phone}</li>
-                    <li><strong>Address:</strong> {customer_address}</li>
+                    <li><strong>Name:</strong> {order.customer_name}</li>
+                    <li><strong>Phone:</strong> {order.customer_phone}</li>
+                    <li><strong>Address:</strong> {order.customer_address}</li>
                 </ul>
 
                 <div class="order-details">
                     <p><strong>Order Details:</strong></p>
                     <ul>
-                        {order_details_str}
+                       {order_details_str}
                     </ul>
                 </div>
 
@@ -170,7 +177,7 @@ def send_email_with_custom_template(customer_name: str, customer_phone: str, cus
         response = sg.send(message)
         return {"status_code": response.status_code, "message": "Email sent successfully"}
     except Exception as e:
-        return {"error": str(e)}
+        return {"status_code": response.status_code, "message": "Email send failed"}
     
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 8000))
