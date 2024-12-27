@@ -15,10 +15,10 @@ load_dotenv('.env')
 
 app = FastAPI()
 class OrderDetails(BaseModel):
-    customer_name: str 
-    customer_phone: str
-    customer_address: str
-    order_details: List[str]
+    name: str 
+    phone: str
+    address: str
+    orderDetails: List[str]
 
 # app.add_middleware(DBSessionMiddleware, db_url=os.environ['DATABASE_URL'])
 origins = [
@@ -110,7 +110,7 @@ def get_subfolder_count(manga_name: str):
 @app.post("/send-email")
 def send_email_with_custom_template(order: OrderDetails):
     try:
-        order_details_str = "\n".join([f"<li>{item}</li>" for item in order.order_details])
+        order_details_str = "\n".join([f"<li>{item}</li>" for item in order.orderDetails])
         content = f"""
         <html>
         <head>
@@ -147,11 +147,11 @@ def send_email_with_custom_template(order: OrderDetails):
         <body>
             <div class="email-content">
                 <h2>Hello Tachay Food Team,</h2>
-                <p>You got a new order from <strong>{order.customer_name}</strong>:</p>
+                <p>You got a new order from <strong>{order.name}</strong>:</p>
                 <ul>
-                    <li><strong>Name:</strong> {order.customer_name}</li>
-                    <li><strong>Phone:</strong> {order.customer_phone}</li>
-                    <li><strong>Address:</strong> {order.customer_address}</li>
+                    <li><strong>Name:</strong> {order.name}</li>
+                    <li><strong>Phone:</strong> {order.phone}</li>
+                    <li><strong>Address:</strong> {order.address}</li>
                 </ul>
 
                 <div class="order-details">
