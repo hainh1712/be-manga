@@ -29,7 +29,7 @@ origins = [
     "http://localhost:3000",
     "https://onepage-next14.vercel.app/",
     "https://onepage-next13.vercel.app/",
-    "http://tachayfood.vn/",
+    "https://tachayfood.vn",
     "https://tachay-food.vercel.app"
 ]
 s3 = boto3.client("s3", aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_REGION'])
