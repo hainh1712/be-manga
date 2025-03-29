@@ -10,15 +10,9 @@ import boto3
 from typing import List
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from pydantic import BaseModel
 load_dotenv('.env')
 
 app = FastAPI()
-class OrderDetails(BaseModel):
-    name: str 
-    phone: str
-    address: str
-    orderDetails: List[str]
 
 # app.add_middleware(DBSessionMiddleware, db_url=os.environ['DATABASE_URL'])
 origins = [
@@ -29,8 +23,7 @@ origins = [
     "http://localhost:3000",
     "https://onepage-next14.vercel.app/",
     "https://onepage-next13.vercel.app/",
-    "https://tachayfood.vn",
-    "https://tachay-food.vercel.app"
+    "http://tachayfood.vn/"
 ]
 s3 = boto3.client("s3", aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_REGION'])
 
@@ -108,9 +101,9 @@ def get_subfolder_count(manga_name: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 @app.post("/send-email")
-def send_email_with_custom_template(order: OrderDetails):
+def send_email_with_custom_template(customer_name: str, customer_phone: str, customer_address: str, order_details: str):
     try:
-        order_details_str = "\n".join([f"<li>{item}</li>" for item in order.orderDetails])
+        order_details_str = "\n".join([f"<li>{item}</li>" for item in order_details])
         content = f"""
         <html>
         <head>
@@ -147,17 +140,17 @@ def send_email_with_custom_template(order: OrderDetails):
         <body>
             <div class="email-content">
                 <h2>Hello Tachay Food Team,</h2>
-                <p>You got a new order from <strong>{order.name}</strong>:</p>
+                <p>You got a new order from <strong>{customer_name}</strong>:</p>
                 <ul>
-                    <li><strong>Name:</strong> {order.name}</li>
-                    <li><strong>Phone:</strong> {order.phone}</li>
-                    <li><strong>Address:</strong> {order.address}</li>
+                    <li><strong>Name:</strong> {customer_name}</li>
+                    <li><strong>Phone:</strong> {customer_phone}</li>
+                    <li><strong>Address:</strong> {customer_address}</li>
                 </ul>
 
                 <div class="order-details">
                     <p><strong>Order Details:</strong></p>
                     <ul>
-                       {order_details_str}
+                        {order_details_str}
                     </ul>
                 </div>
 
@@ -168,7 +161,7 @@ def send_email_with_custom_template(order: OrderDetails):
         </html>
         """
         message = Mail(
-            from_email=os.environ.get('FROM_EMAIL'),
+            from_email='sendgrid@gmail.com',
             to_emails=os.environ.get('TO_EMAILS'),
             subject="New Order Notification",
             html_content=content
@@ -177,9 +170,79 @@ def send_email_with_custom_template(order: OrderDetails):
         response = sg.send(message)
         return {"status_code": response.status_code, "message": "Email sent successfully"}
     except Exception as e:
-        return {"status_code": response.status_code, "message": "Email send failed"}
+        return {"error": str(e)}
     
-# if __name__ == "__main__":
-#     port = int(os.environ.get('PORT', 8000))
-#     # uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
-#     uvicorn.run("main:app", host="localhost", port=port, reload=True)
+@app.post("/send-email/aeon-mall")
+def send_email_with_aeon_mall(name: str, phone: str, address: str, events: str, question: str):
+    try:
+        event_str = "\n".join([f"<li>{item}</li>" for item in events])
+        content = f"""
+        <html>
+        <head>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    background-color: #f9f9f9;
+                    padding: 20px;
+                }}
+                .email-content {{
+                    background-color: #ffffff;
+                    border: 1px solid #ddd;
+                    padding: 20px;
+                    border-radius: 8px;
+                }}
+                h2 {{
+                    color: #333;
+                }}
+                .order-details {{
+                    background-color: #f3f3f3;
+                    padding: 10px;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                }}
+                ul {{
+                    padding-left: 20px;
+                }}
+                li {{
+                    color: #555;
+                    margin-bottom: 5px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="email-content">
+                <h2>Xin chào AEON MALL Hải Phòng Lê Chân,</h2>
+                <p>Bạn nhận được đơn đăng ký tham dự sự kiện từ <strong>{name}</strong>:</p>
+                <ul>
+                    <li><strong>Tên:</strong> {name}</li>
+                    <li><strong>Số điện thoại:</strong> {phone}</li>
+                    <li><strong>Địa chỉ:</strong> {address}</li>
+                    <li><strong>Câu hỏi:</strong> {question}</li>
+                </ul>
+
+                <div class="order-details">
+                    <p><strong>Bạn đọc {name} quan tâm tới sự kiện sausau:</strong></p>
+                    <ul>
+                        {event_str}
+                    </ul>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        message = Mail(
+            from_email='sendgrid@gmail.com',
+            to_emails=os.environ.get('TO_EMAILS_AEON_MALL'),
+            subject="Đơn đăng ký tham dự sự kiện AEON MALL",
+            html_content=content
+        )
+        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        response = sg.send(message)
+        return {"status_code": response.status_code, "message": "Email sent successfully"}
+    except Exception as e:
+        return {"error": str(e)}
+
+if __name__ == "__main__":
+    port = int(os.environ.get('PORT', 8000))
+    # uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("main:app", host="localhost", port=port, reload=True)
