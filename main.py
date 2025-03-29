@@ -173,9 +173,9 @@ def send_email_with_custom_template(customer_name: str, customer_phone: str, cus
         return {"error": str(e)}
     
 @app.post("/send-email/aeon-mall")
-def send_email_with_aeon_mall(name: str, phone: str, address: str, events: str, question: str):
+def send_email_with_aeon_mall(name: str, phone: str, email: str, eventInterests: str, message: str):
     try:
-        event_str = "\n".join([f"<li>{item}</li>" for item in events])
+        event_str = "\n".join([f"<li>{item}</li>" for item in eventInterests])
         content = f"""
         <html>
         <head>
@@ -216,8 +216,8 @@ def send_email_with_aeon_mall(name: str, phone: str, address: str, events: str, 
                 <ul>
                     <li><strong>Tên:</strong> {name}</li>
                     <li><strong>Số điện thoại:</strong> {phone}</li>
-                    <li><strong>Địa chỉ:</strong> {address}</li>
-                    <li><strong>Câu hỏi:</strong> {question}</li>
+                    <li><strong>Email:</strong> {email}</li>
+                    <li><strong>Câu hỏi:</strong> {message}</li>
                 </ul>
 
                 <div class="order-details">
