@@ -10,6 +10,7 @@ import boto3
 from typing import List
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from pydantic import BaseModel
 load_dotenv('.env')
 
 app = FastAPI()
@@ -26,7 +27,13 @@ origins = [
     "http://tachayfood.vn/"
 ]
 s3 = boto3.client("s3", aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_REGION'])
-
+class EmailRequest(BaseModel):
+    name: str
+    phone: str
+    email: str
+    eventInterests: List[str]
+    message: str
+    
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -173,9 +180,11 @@ def send_email_with_custom_template(customer_name: str, customer_phone: str, cus
         return {"error": str(e)}
     
 @app.post("/send-email/aeon-mall")
-def send_email_with_aeon_mall(name: str, phone: str, email: str, eventInterests: str, message: str):
+def send_email_with_aeon_mall(request: EmailRequest):
     try:
-        event_str = "\n".join([f"<li>{item}</li>" for item in eventInterests])
+        # ✅ Đảm bảo eventInterests là danh sách, không cần join từ frontend
+        event_str = "\n".join([f"<li>{item}</li>" for item in request.eventInterests])
+
         content = f"""
         <html>
         <head>
@@ -212,16 +221,16 @@ def send_email_with_aeon_mall(name: str, phone: str, email: str, eventInterests:
         <body>
             <div class="email-content">
                 <h2>Xin chào AEON MALL Hải Phòng Lê Chân,</h2>
-                <p>Bạn nhận được đơn đăng ký tham dự sự kiện từ <strong>{name}</strong>:</p>
+                <p>Bạn nhận được đơn đăng ký tham dự sự kiện từ <strong>{request.name}</strong>:</p>
                 <ul>
-                    <li><strong>Tên:</strong> {name}</li>
-                    <li><strong>Số điện thoại:</strong> {phone}</li>
-                    <li><strong>Email:</strong> {email}</li>
-                    <li><strong>Câu hỏi:</strong> {message}</li>
+                    <li><strong>Tên:</strong> {request.name}</li>
+                    <li><strong>Số điện thoại:</strong> {request.phone}</li>
+                    <li><strong>Email:</strong> {request.email}</li>
+                    <li><strong>Câu hỏi:</strong> {request.message}</li>
                 </ul>
 
                 <div class="order-details">
-                    <p><strong>Bạn đọc {name} quan tâm tới sự kiện sausau:</strong></p>
+                    <p><strong>Bạn đọc {request.name} quan tâm tới sự kiện sau:</strong></p>
                     <ul>
                         {event_str}
                     </ul>
@@ -238,10 +247,12 @@ def send_email_with_aeon_mall(name: str, phone: str, email: str, eventInterests:
         )
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
         response = sg.send(message)
+
         return {"status_code": response.status_code, "message": "Email sent successfully"}
+
     except Exception as e:
         return {"error": str(e)}
-
+    
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 8000))
     # uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
