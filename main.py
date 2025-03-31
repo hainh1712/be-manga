@@ -240,7 +240,7 @@ def send_email_with_aeon_mall(request: EmailRequest):
         </html>
         """
         message = Mail(
-            from_email='sendgrid@gmail.com',
+            from_email='nguyenhoanghai20021712@gmail.com',
             to_emails=os.environ.get('TO_EMAILS_AEON_MALL'),
             subject="Đơn đăng ký tham dự sự kiện AEON MALL",
             html_content=content
