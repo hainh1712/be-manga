@@ -182,7 +182,6 @@ def send_email_with_custom_template(customer_name: str, customer_phone: str, cus
 @app.post("/send-email/aeon-mall")
 def send_email_with_aeon_mall(request: EmailRequest):
     try:
-        # ✅ Đảm bảo eventInterests là danh sách, không cần join từ frontend
         event_str = "\n".join([f"<li>{item}</li>" for item in request.eventInterests])
 
         content = f"""
